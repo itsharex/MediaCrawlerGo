@@ -34,6 +34,6 @@ func main() {
 	// create crawler and start it
 	crawler := createCrawler(*currentPlatform)
 	crawler.InitConfig(*loginType)
-	crawler.Start()
+	// crawler.Start()
 	util.Log().Info("Running ...")
 }

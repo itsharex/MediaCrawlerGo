@@ -12,3 +12,8 @@
 - [ ] 小红书登录（二维码、cookies）
 - [ ] 小红书Sign请求签名
 - [ ] 并发执行爬虫请求
+
+
+## 参考
+
+- Singo(https://github.com/Gourouting/singo)

@@ -1,6 +1,7 @@
 package conf
 
 import (
+	"MediaCrawlerGo/models"
 	"log"
 	"os"
 
@@ -19,5 +20,7 @@ func Init() {
 	util.BuildLogger("MediaCrawlerGo", os.Getenv("LOG_LEVEL"))
 
 	// connected mysql
-	// todo ...
+	// 连接数据库
+	models.Database(os.Getenv("MYSQL_DSN"))
+
 }
