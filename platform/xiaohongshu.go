@@ -1,6 +1,8 @@
 package platform
 
-import "fmt"
+import (
+	"MediaCrawlerGo/util"
+)
 
 type ReadNoteCore struct {
 	loginType string
@@ -8,14 +10,14 @@ type ReadNoteCore struct {
 
 func (xhs *ReadNoteCore) InitConfig(loginType string) {
 	xhs.loginType = loginType
-	fmt.Printf("XhsReadNoteCore.InitConfig and loginType: %s called ...  \n", loginType)
+	util.Log().Info("XhsReadNoteCore.InitConfig called ...")
 }
 
 func (xhs *ReadNoteCore) Start() {
-	fmt.Println("XhsReadNoteCore.Start called ...")
+	util.Log().Info("XhsReadNoteCore.Start called ...")
 	xhs.search()
 }
 
 func (xhs *ReadNoteCore) search() {
-	fmt.Println("XhsReadNoteCore.search called ...")
+	util.Log().Info("XhsReadNoteCore.search called ...")
 }

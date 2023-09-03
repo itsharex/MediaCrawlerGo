@@ -23,4 +23,6 @@ go.work
 # Other files
 *.iml
 .idea
-.develop.yaml
+.env
+/dist/
+/go.sum

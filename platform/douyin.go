@@ -1,6 +1,8 @@
 package platform
 
-import "fmt"
+import (
+	"MediaCrawlerGo/util"
+)
 
 type DYCore struct {
 	loginType string
@@ -8,14 +10,14 @@ type DYCore struct {
 
 func (dy *DYCore) InitConfig(loginType string) {
 	dy.loginType = loginType
-	fmt.Printf("DYCore.InitConfig called ... loginType: %s", loginType)
+	util.Log().Info("DYCore.InitConfig called ... ")
 }
 
 func (dy *DYCore) Start() {
 	dy.search()
-	fmt.Println("DYCore.Start called ...")
+	util.Log().Info("DYCore.Start called ..")
 }
 
 func (dy *DYCore) search() {
-	fmt.Println("DYCore.Start called ...")
+	util.Log().Info("DYCore.search called ..")
 }

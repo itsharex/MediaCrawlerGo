@@ -1,8 +1,12 @@
 package main
 
 import (
+	"flag"
+	"os"
+
+	"MediaCrawlerGo/conf"
 	"MediaCrawlerGo/platform"
-	"fmt"
+	"MediaCrawlerGo/util"
 )
 
 // crawler factory mode
@@ -13,16 +17,23 @@ func createCrawler(currentPlatform string) platform.AbstractCrawler {
 	} else if currentPlatform == "dy" {
 		crawler = &platform.DYCore{}
 	} else {
-		panic("Invalid Media Platform Currently only supported xhs or dy ...")
+		util.Log().Panic("Invalid Media Platform Currently only supported xhs or dy ...")
 	}
 	return crawler
 }
 
 func main() {
-	// define some command lines parameters
+	// init conf
+	conf.Init()
 
-	crawler := createCrawler("xhs")
-	crawler.InitConfig("qrcode")
+	// define some command lines parameters and parse they
+	currentPlatform := flag.String("platform", os.Getenv("PLATFORM"), "Media platform select (xhs|dy)")
+	loginType := flag.String("lt", os.Getenv("LOGIN_TYPE"), "Login type (qrcode | cookie)")
+	flag.Parse()
+
+	// create crawler and start it
+	crawler := createCrawler(*currentPlatform)
+	crawler.InitConfig(*loginType)
 	crawler.Start()
-	fmt.Println("MediaCrawGo Running ...")
+	util.Log().Info("Running ...")
 }
