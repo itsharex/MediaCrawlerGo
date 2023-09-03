@@ -19,3 +19,8 @@
 
 # Go workspace file
 go.work
+
+# Other files
+*.iml
+.idea
+.develop.yaml
