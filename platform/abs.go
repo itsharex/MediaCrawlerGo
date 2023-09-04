@@ -1,5 +1,7 @@
 package platform
 
+import "net/http"
+
 // AbstractCrawler all media platforms abstract interface, the specific platform needs to implement it
 type AbstractCrawler interface {
 
@@ -24,4 +26,16 @@ type AbstractLogin interface {
 
 	// loginByQrcode use cookies logging in the specific platform
 	loginByCookies()
+}
+
+// AbstractClient all platform client abstract client
+type AbstractClient interface {
+	// Get http method
+	Get(url string, headers map[string]string) (*http.Response, error)
+
+	// Post http method
+	Post(url string, body []byte, headers map[string]string) (*http.Response, error)
+
+	// PreHeaders process request headers
+	PreHeaders(params ...any) map[string]string
 }
