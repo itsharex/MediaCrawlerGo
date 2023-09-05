@@ -26,3 +26,4 @@ go.work
 .env
 /dist/
 /go.sum
+/browser_data/
