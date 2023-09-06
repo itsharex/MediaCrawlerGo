@@ -26,6 +26,9 @@ type AbstractLogin interface {
 
 	// loginByQrcode use cookies logging in the specific platform
 	loginByCookies()
+
+	// checkLoginState Asynchronous polling check login status.
+	checkLoginState()
 }
 
 // AbstractClient all platform client abstract client
