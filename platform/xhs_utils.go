@@ -1,6 +1,7 @@
 package platform
 
 import (
+	"github.com/playwright-community/playwright-go"
 	"math/rand"
 	"time"
 )
@@ -19,4 +20,8 @@ func base36encode(n int64) string {
 		s = string(base36Chars[n%36]) + s
 	}
 	return s
+}
+
+func ConvertCookies(cookies []*playwright.Cookie) (string, map[string]string) {
+	return "", map[string]string{}
 }

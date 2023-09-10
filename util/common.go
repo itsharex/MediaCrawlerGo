@@ -37,3 +37,10 @@ func GetBoolFromEnv(key string) (bool, error) {
 
 	return boolVal, nil
 }
+
+func AssertErrorToNil(message string, err error) {
+	if err != nil {
+		Log().Panic(message, err)
+	}
+
+}
