@@ -1,6 +1,7 @@
 package platform
 
 import (
+	"MediaCrawlerGo/util"
 	"bytes"
 	"encoding/json"
 	"github.com/playwright-community/playwright-go"
@@ -13,7 +14,7 @@ type XhsHttpClient struct {
 	headers        map[string]string
 	timeout        int
 	playwrightPage *playwright.Page
-	cookies        map[string]string
+	cookiesMap     map[string]string
 }
 
 func (c *XhsHttpClient) PreHeaders(params ...any) map[string]string {
@@ -88,6 +89,27 @@ type Note struct {
 // XhsApiClient Packaged api client based on xhs
 type XhsApiClient struct {
 	httpClient *XhsHttpClient
+}
+
+// Ping xhs api pong before execute search note ...
+func (api *XhsApiClient) Ping() bool {
+	pong := true
+	util.Log().Info("Begin to ping xhs ...")
+	_, err := api.GetNoteByKeyword("小红书", 1, 10, "GENERAL", "2")
+	if err != nil {
+		pong = false
+	}
+	return pong
+}
+
+// UpdateCookies will call this method when invalid login
+func (api *XhsApiClient) UpdateCookies(ctx playwright.BrowserContext) {
+	cookies, err := ctx.Cookies()
+	util.AssertErrorToNil("could not get cookies from browserContext: %s", err)
+	convertResp, err := ConvertCookies(cookies)
+	util.AssertErrorToNil("convert cookie failed and error:", err)
+	api.httpClient.headers["Cookie"] = convertResp.cookieStr
+	api.httpClient.cookiesMap = convertResp.cookiesMap
 }
 
 // GetNoteByKeyword get note list by search keywords

@@ -4,6 +4,7 @@ import (
 	"MediaCrawlerGo/util"
 	"github.com/playwright-community/playwright-go"
 	"net/http"
+	"os"
 )
 
 type ReadNoteCore struct {
@@ -27,8 +28,9 @@ func (xhs *ReadNoteCore) Start() {
 	util.AssertErrorToNil("could not start playwright: %w", err)
 
 	// launch Chromium browser
+	headless, _ := util.GetBoolFromEnv("HEADLESS")
 	browser, err := pw.Chromium.Launch(playwright.BrowserTypeLaunchOptions{
-		Headless: playwright.Bool(false),
+		Headless: playwright.Bool(headless),
 	})
 	util.AssertErrorToNil("could not launch chromium: %w", err)
 
@@ -52,7 +54,24 @@ func (xhs *ReadNoteCore) Start() {
 		util.Log().Error("could not goto: %v", err)
 	}
 
-	xhs.CreateXhsClient(page)
+	// create xhs client and test the ping status
+	xhsClient := xhs.CreateXhsClient()
+	pong := xhsClient.Ping()
+
+	// If ping fails then log in again and update client cookies
+	if !pong {
+		util.Log().Info("ping failed and log in again")
+		loginSuccess := os.Getenv("COOKIES")
+		login := XhsLogin{
+			loginType:             xhs.loginType,
+			browserContext:        xhs.browserContext,
+			contextPage:           xhs.contextPage,
+			loginSuccessCookieStr: &loginSuccess,
+		}
+		login.begin()
+		xhsClient.UpdateCookies(xhs.browserContext)
+	}
+
 	xhs.search()
 
 	// block
@@ -63,10 +82,15 @@ func (xhs *ReadNoteCore) search() {
 	util.Log().Info("XhsReadNoteCore.search called ...")
 }
 
-func (xhs *ReadNoteCore) CreateXhsClient(page playwright.Page) *XhsApiClient {
+func (xhs *ReadNoteCore) CreateXhsClient() *XhsApiClient {
+	util.Log().Info("Begin create xiaohongshu API client ...")
+	cookies, err := xhs.browserContext.Cookies()
+	util.AssertErrorToNil("could not get cookies from browserContext: %s", err)
+	convertResp, err := ConvertCookies(cookies)
+	util.AssertErrorToNil("convert cookie failed and error:", err)
 	headers := map[string]string{
 		"User-Agent":   xhs.userAgent,
-		"Cookie":       "",
+		"Cookie":       convertResp.cookieStr,
 		"Origin":       "https://www.xiaohongshu.com",
 		"Referer":      "https://www.xiaohongshu.com",
 		"Content-Type": "application/json;charset=UTF-8",
@@ -76,8 +100,8 @@ func (xhs *ReadNoteCore) CreateXhsClient(page playwright.Page) *XhsApiClient {
 			client:         &http.Client{},
 			headers:        headers,
 			timeout:        60,
-			playwrightPage: &page,
-			cookies:        map[string]string{},
+			cookiesMap:     convertResp.cookiesMap,
+			playwrightPage: &xhs.contextPage,
 		},
 	}
 }

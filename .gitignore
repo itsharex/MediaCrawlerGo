@@ -27,3 +27,4 @@ go.work
 /dist/
 /go.sum
 /browser_data/
+/temp/
