@@ -53,8 +53,9 @@ func AssertErrorToNil(message string, err error) {
 	}
 }
 
+// ShowQrcode show qrcode
 func ShowQrcode(base64Image string) error {
-	// 解码base64图片
+	// decode base64 image
 	base64Image = strings.Replace(base64Image, "data:image/png;base64,", "", -1)
 	imageData, err := base64.StdEncoding.DecodeString(base64Image)
 	if err != nil {
@@ -62,14 +63,14 @@ func ShowQrcode(base64Image string) error {
 		return err
 	}
 
-	// 创建临时文件
+	// creat temp file
 	tempFile, err := os.Create("temp/qrcode_image.png")
 	if err != nil {
 		fmt.Println("无法创建临时文件:", err)
 		return err
 	}
 
-	// 写入图片数据到临时文件
+	// write image data to temp file
 	_, err = tempFile.Write(imageData)
 	if err != nil {
 		fmt.Println("无法写入图片数据到临时文件:", err)
@@ -101,4 +102,25 @@ func OpenImage(absImageFilePath string) error {
 		return err
 	}
 	return nil
+}
+
+// MergeMap Merge two map, the first map have higher priority
+func MergeMap(m map[string]interface{}, overriddenMap map[string]interface{}) map[string]interface{} {
+	if overriddenMap == nil {
+		return m
+	}
+	if m == nil {
+		return overriddenMap
+	}
+
+	mergedMap := make(map[string]interface{})
+	for k, v := range overriddenMap {
+		mergedMap[k] = v
+	}
+	for k, v := range m {
+		mergedMap[k] = v
+	}
+
+	return mergedMap
+
 }

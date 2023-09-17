@@ -69,12 +69,13 @@ func (xl *XhsLogin) loginByQrcode() {
 	case result := <-loginFlag:
 		if result {
 			util.Log().Info("Login successfully ...")
-
 		} else {
 			util.Log().Error("Login failed ...")
+			os.Exit(-1)
 		}
 	case <-time.After(MaxLoginTimeOut * time.Second):
 		util.Log().Error("Login time out ...")
+		os.Exit(-1)
 	}
 }
 
@@ -89,6 +90,7 @@ func (xl *XhsLogin) checkLoginState(noLoginWebSession string, loginFlag chan<- b
 		util.Log().Info("Remaining %d s login", MaxLoginTimeOut-i)
 		if isLoggedIn(noLoginWebSession, xl.browserContext) {
 			loginFlag <- true
+			return
 		}
 		time.Sleep(time.Second)
 	}

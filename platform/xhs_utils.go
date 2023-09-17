@@ -1,29 +1,53 @@
 package platform
 
 import (
-	"MediaCrawlerGo/util"
 	"errors"
 	"fmt"
-	"github.com/playwright-community/playwright-go"
+	"math/big"
 	"math/rand"
 	"strings"
 	"time"
+
+	"github.com/playwright-community/playwright-go"
+
+	"MediaCrawlerGo/util"
 )
 
-const base36Chars = "0123456789abcdefghijklmnopqrstuvwxyz"
+func IntToBase36(num *big.Int) string {
+	const base = 36
+	const charset = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
-func GetSearchID() string {
-	e := int64(time.Now().UnixNano()/1000000) << 64
-	t := int64(rand.Intn(2147483646))
-	return base36encode(e + t)
+	if num.Sign() == 0 {
+		return "0"
+	}
+
+	var result string
+	zero := big.NewInt(0)
+	for num.Cmp(zero) > 0 {
+		quotient := new(big.Int)
+		quotient.Mod(num, big.NewInt(base))
+		num.Div(num, big.NewInt(base))
+		result = string(charset[quotient.Int64()]) + result
+	}
+
+	return result
 }
 
-func base36encode(n int64) string {
-	s := ""
-	for ; n != 0; n /= 36 {
-		s = string(base36Chars[n%36]) + s
-	}
-	return s
+func getSearchId() string {
+	timestamp := time.Now().UnixNano() / 1e6 // 转换为毫秒级别时间戳
+	e := new(big.Int)
+	e.SetInt64(timestamp)
+	e.Lsh(e, 64) // 左移64位
+
+	t := new(big.Int)
+	seed := time.Now().UnixNano() / 1e6
+	r := rand.New(rand.NewSource(seed))
+	smallT := r.Intn(2147483647) // 生成介于0和2147483646之间的随机整数
+	t.SetInt64(int64(smallT))
+
+	result := new(big.Int)
+	result.Add(e, t)
+	return IntToBase36(result)
 }
 
 type ConvertCookiesResp struct {

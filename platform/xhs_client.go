@@ -1,81 +1,38 @@
 package platform
 
 import (
-	"MediaCrawlerGo/util"
 	"bytes"
 	"encoding/json"
-	"github.com/playwright-community/playwright-go"
+	"errors"
+	"fmt"
 	"net/http"
+	"strconv"
+	"strings"
+
+	"github.com/playwright-community/playwright-go"
+
+	"MediaCrawlerGo/util"
 )
 
 // XhsHttpClient Packaged httpclient based on xhs
 type XhsHttpClient struct {
 	client         *http.Client
-	headers        map[string]string
+	headers        map[string]interface{}
 	timeout        int
-	playwrightPage *playwright.Page
+	playwrightPage playwright.Page
 	cookiesMap     map[string]string
+	baseUrl        string
 }
-
-func (c *XhsHttpClient) PreHeaders(params ...any) map[string]string {
-	// params []any
-	headers := make(map[string]string)
-	headers["X-s"] = ""
-	headers["X-t"] = ""
-	headers["X-s-common"] = ""
-	headers["X-B3-Traceid"] = ""
-	return headers
+type SearchXhsNoteParams struct {
+	Keyword  string         `json:"keyword"`
+	Page     int            `json:"page"`
+	PageSize int            `json:"page_size"`
+	Sort     SearchSortType `json:"sort"`
+	NoteType SearchNoteType `json:"note_type"`
+	SearchId string         `json:"search_id"`
 }
-
-func (c *XhsHttpClient) Get(url string, headers map[string]string) (*http.Response, error) {
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	// add pre headers method before send request
-	for key, value := range c.PreHeaders(url, headers) {
-		req.Header.Set(key, value)
-	}
-
-	res, err := c.client.Do(req)
-	if err != nil {
-		return nil, err
-	}
-
-	return res, nil
-}
-
-func (c *XhsHttpClient) Post(url string, body []byte, headers map[string]string) (*http.Response, error) {
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(body))
-	if err != nil {
-		return nil, err
-	}
-
-	// add pre headers method before send request
-	for key, value := range c.PreHeaders(url, headers) {
-		req.Header.Set(key, value)
-	}
-
-	res, err := c.client.Do(req)
-	if err != nil {
-		return nil, err
-	}
-
-	return res, nil
-}
-
 type SearchSortType string
-
-const (
-	GENERAL SearchSortType = "GENERAL" // replace with actual values
-)
-
-type SearchNoteType string
-
-const (
-	ALL SearchNoteType = "ALL" // replace with actual values
-)
+type SearchNoteType int
 
 type NoteSearchResult struct {
 	HasMore bool   `json:"has_more"`
@@ -84,6 +41,99 @@ type NoteSearchResult struct {
 
 type Note struct {
 	// Define your Note struct fields here
+}
+
+const (
+	GENERAL SearchSortType = "general"
+	POPULAR SearchSortType = "popularity_descending"
+	LATEST  SearchSortType = "time_descending"
+)
+
+const (
+	ALL SearchNoteType = iota
+	VIDEO
+	IMAGE
+)
+
+func (c *XhsHttpClient) PreHeaders(uri string, body []byte) map[string]interface{} {
+	var fullHeaders map[string]interface{}
+	var encryptData map[string]interface{}
+
+	_ = json.Unmarshal(body, &encryptData)
+	encryptParams, err := c.playwrightPage.Evaluate("(url, data) => window._webmsxyw(url,data)", uri, encryptData)
+	if err != nil {
+		util.Log().Panic("window._webmsxyw(url,data) err:%v", err)
+
+	}
+	if encryptParamsMap, ok := encryptParams.(map[string]interface{}); ok {
+		headers := make(map[string]interface{})
+		headers["X-s"] = encryptParamsMap["X-s"]
+		headers["X-t"] = encryptParamsMap["X-t"]
+		fullHeaders = util.MergeMap(headers, c.headers)
+	} else {
+		util.Log().Panic("encryptParams convert failed")
+	}
+
+	util.Log().Info("fullHeaders string :%s", fullHeaders)
+
+	return fullHeaders
+}
+
+func (c *XhsHttpClient) Get(uri string, params map[string]string) (*http.Response, error) {
+	url := c.baseUrl + uri
+	if params != nil {
+		paramSlice := make([]string, len(params))
+		for k, v := range params {
+			paramSlice = append(paramSlice, fmt.Sprintf("%s=%v", k, v))
+		}
+		url += "?" + strings.Join(paramSlice, "&")
+	}
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	// add pre headers method before send request
+	for key, value := range c.PreHeaders(uri, nil) {
+		if stringValue, ok := value.(string); ok {
+			req.Header.Set(key, stringValue)
+		} else {
+			continue
+		}
+	}
+
+	res, err := c.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	return res, nil
+}
+
+func (c *XhsHttpClient) Post(uri string, body []byte) (*http.Response, error) {
+	util.Log().Info("Begin execute post request, uri: %s, body: %v", uri, string(body))
+	req, err := http.NewRequest("POST", c.baseUrl+uri, bytes.NewBuffer(body))
+	if err != nil {
+		return nil, err
+	}
+
+	// add pre headers method before send request
+	for key, value := range c.PreHeaders(uri, body) {
+		if stringValue, ok := value.(string); ok {
+			req.Header.Set(key, stringValue)
+		} else if intValue, ok := value.(int); ok {
+			req.Header.Set(key, strconv.Itoa(intValue))
+		} else {
+			continue
+		}
+	}
+
+	res, err := c.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	return res, nil
 }
 
 // XhsApiClient Packaged api client based on xhs
@@ -95,9 +145,17 @@ type XhsApiClient struct {
 func (api *XhsApiClient) Ping() bool {
 	pong := true
 	util.Log().Info("Begin to ping xhs ...")
-	_, err := api.GetNoteByKeyword("小红书", 1, 10, "GENERAL", "2")
+	_, err := api.GetNoteByKeyword(SearchXhsNoteParams{
+		Keyword:  "小红书",
+		Page:     1,
+		PageSize: 20,
+		Sort:     GENERAL,
+		NoteType: ALL,
+		SearchId: getSearchId(),
+	})
 	if err != nil {
 		pong = false
+		util.Log().Info("Xhs ping failed and login again ...")
 	}
 	return pong
 }
@@ -113,25 +171,19 @@ func (api *XhsApiClient) UpdateCookies(ctx playwright.BrowserContext) {
 }
 
 // GetNoteByKeyword get note list by search keywords
-func (api *XhsApiClient) GetNoteByKeyword(keyword string, page int, pageSize int, sort SearchSortType, noteType SearchNoteType) (NoteSearchResult, error) {
+func (api *XhsApiClient) GetNoteByKeyword(searchParams SearchXhsNoteParams) (NoteSearchResult, error) {
 	uri := "/api/sns/web/v1/search/notes"
-	data := map[string]interface{}{
-		"keyword":   keyword,
-		"page":      page,
-		"page_size": pageSize,
-		"search_id": GetSearchID(),
-		"sort":      string(sort),     // convert SearchSortType to string
-		"note_type": string(noteType), // convert SearchNoteType to string
-	}
-
-	body, err := json.Marshal(data)
+	searchBob, err := json.Marshal(searchParams)
+	resp, err := api.httpClient.Post(uri, searchBob)
 	if err != nil {
 		return NoteSearchResult{}, err
 	}
 
-	resp, err := api.httpClient.Post(uri, body, map[string]string{})
-	if err != nil {
-		return NoteSearchResult{}, err
+	if resp.StatusCode != 200 {
+		var errorResp any
+		_ = json.NewDecoder(resp.Body).Decode(&errorResp)
+		util.Log().Info("errorResp: %v", errorResp)
+		return NoteSearchResult{}, errors.New("got note failed")
 	}
 
 	var result NoteSearchResult
