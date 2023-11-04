@@ -3,6 +3,7 @@ package util
 import (
 	"encoding/base64"
 	"fmt"
+	"github.com/playwright-community/playwright-go"
 	"math/rand"
 	"os"
 	"os/exec"
@@ -123,4 +124,28 @@ func MergeMap(m map[string]interface{}, overriddenMap map[string]interface{}) ma
 
 	return mergedMap
 
+}
+
+func ConvertCookieStrToPlaywrightCookieList(cookieStr string) []playwright.OptionalCookie {
+	var customCookies []playwright.OptionalCookie
+	if cookieStr == "" {
+		return nil
+	}
+	cookies := strings.Split(cookieStr, ";")
+	for _, cookie := range cookies {
+		cookie = strings.TrimSpace(cookie)
+		if cookie == "" {
+			continue
+		}
+		cookieList := strings.Split(cookie, "=")
+		if len(cookieList) != 2 {
+			continue
+		}
+		customCookies = append(customCookies,
+			playwright.OptionalCookie{
+				Name:  cookieList[0],
+				Value: cookieList[1],
+			})
+	}
+	return customCookies
 }

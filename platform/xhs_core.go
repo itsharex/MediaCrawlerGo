@@ -26,41 +26,41 @@ var XHSPageCount = 1
 func (core *ReadNoteCore) InitConfig(loginType string) {
 	core.loginType = loginType
 	core.userAgent = util.GetUserAgent()
-	util.Log().Info("XhsReadNoteCore.InitConfig called ...")
+	util.Log().Info("[ReadNoteCore.InitConfig] called ...")
 }
 
 func (core *ReadNoteCore) Start() {
-	util.Log().Info("XhsReadNoteCore.Start called ...")
+	util.Log().Info("[ReadNoteCore.Start] called ...")
 
 	// run playwright
 	pw, err := playwright.Run()
-	util.AssertErrorToNil("could not start playwright: %w", err)
+	util.AssertErrorToNil("[ReadNoteCore.Start] could not start playwright: %w", err)
 
 	// launch Chromium browser
 	headless, _ := util.GetBoolFromEnv("HEADLESS")
 	browser, err := pw.Chromium.Launch(playwright.BrowserTypeLaunchOptions{
 		Headless: playwright.Bool(headless),
 	})
-	util.AssertErrorToNil("could not launch chromium: %w", err)
+	util.AssertErrorToNil("[ReadNoteCore.Start] could not launch chromium: %w", err)
 
 	// new context from browser
 	context, err := browser.NewContext()
-	util.AssertErrorToNil("could not new chromium context: %w", err)
+	util.AssertErrorToNil("[ReadNoteCore.Start] could not new chromium context: %w", err)
 	core.browserContext = context
 
 	// new page from browser context
 	page, err := context.NewPage()
-	util.AssertErrorToNil("could not new page from context: %w", err)
+	util.AssertErrorToNil("[ReadNoteCore.Start] could not new page from context: %w", err)
 	core.contextPage = page
 
 	// stealth.min.js is a js script to prevent the website from detecting the crawler.
 	filePath := "libs/stealth.min.js"
 	initScriptErr := core.contextPage.AddInitScript(playwright.Script{Path: &filePath})
-	util.AssertErrorToNil("could not add init script: %s", initScriptErr)
+	util.AssertErrorToNil("[ReadNoteCore.Start] could not add init script: %s", initScriptErr)
 
 	// go to xhs site
 	if _, err := core.contextPage.Goto("https://www.xiaohongshu.com"); err != nil {
-		util.Log().Error("could not goto: %v", err)
+		util.Log().Error("[ReadNoteCore.Start] could not goto: %v", err)
 	}
 
 	// create xhs client and test the ping status
@@ -69,7 +69,7 @@ func (core *ReadNoteCore) Start() {
 
 	// If ping fails then log in again and update client cookies
 	if !pong {
-		util.Log().Info("ping failed and log in again")
+		util.Log().Info("[ReadNoteCore.Start] ping failed and log in again")
 		loginSuccess := os.Getenv("COOKIES")
 		login := XhsLogin{
 			loginType:             core.loginType,
@@ -88,7 +88,7 @@ func (core *ReadNoteCore) Start() {
 }
 
 func (core *ReadNoteCore) search() {
-	util.Log().Info("XhsReadNoteCore.search called ...")
+	util.Log().Info("[ReadNoteCore.search] called ...")
 	keywords := os.Getenv("KEYWORDS")
 	crawlerMaxNotesCount, _ := strconv.Atoi(os.Getenv("CRAWLER_MAX_NOTES_COUNT"))
 	keywordSlices := strings.Split(keywords, ",")
@@ -104,10 +104,10 @@ func (core *ReadNoteCore) search() {
 			})
 			XHSPageCount += 1
 			if err != nil {
-				util.Log().Error("GetNoteByKeyword:%v, error:%v", keyword, err)
+				util.Log().Error("[ReadNoteCore.search] GetNoteByKeyword:%v, error:%v", keyword, err)
 				break
 			}
-			util.Log().Info("Get search note result: ", result)
+			util.Log().Info("[ReadNoteCore.search] Get search note result: ", result)
 		}
 
 	}
@@ -115,11 +115,11 @@ func (core *ReadNoteCore) search() {
 }
 
 func (core *ReadNoteCore) CreateXhsClient() *XhsApiClient {
-	util.Log().Info("Begin create xiaohongshu API client ...")
+	util.Log().Info("[ReadNoteCore.CreateXhsClient] Begin create xiaohongshu API client ...")
 	cookies, err := core.browserContext.Cookies()
-	util.AssertErrorToNil("could not get cookies from browserContext: %s", err)
+	util.AssertErrorToNil("[ReadNoteCore.CreateXhsClient] could not get cookies from browserContext: %s", err)
 	convertResp, err := ConvertCookies(cookies)
-	util.AssertErrorToNil("convert cookie failed and error:", err)
+	util.AssertErrorToNil("[ReadNoteCore.CreateXhsClient] convert cookie failed and error:", err)
 	headers := map[string]interface{}{
 		"User-Agent":   core.userAgent,
 		"Cookie":       convertResp.cookieStr,
