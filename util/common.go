@@ -126,7 +126,8 @@ func MergeMap(m map[string]interface{}, overriddenMap map[string]interface{}) ma
 
 }
 
-func ConvertCookieStrToPlaywrightCookieList(cookieStr string) []playwright.OptionalCookie {
+// ConvertCookieStrToPlaywrightCookieList convert str cookie to playwright cookie structs
+func ConvertCookieStrToPlaywrightCookieList(cookieStr string, domain *string) []playwright.OptionalCookie {
 	var customCookies []playwright.OptionalCookie
 	if cookieStr == "" {
 		return nil
@@ -145,6 +146,7 @@ func ConvertCookieStrToPlaywrightCookieList(cookieStr string) []playwright.Optio
 			playwright.OptionalCookie{
 				Name:  cookieList[0],
 				Value: cookieList[1],
+				URL:   domain,
 			})
 	}
 	return customCookies

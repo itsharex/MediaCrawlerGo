@@ -11,6 +11,10 @@ import (
 	"github.com/NanmiCoder/MediaCrawlerGo/util"
 )
 
+const XHSLimitCount = 20
+
+var XHSPageCount = 1
+
 type ReadNoteCore struct {
 	loginType      string
 	userAgent      string
@@ -18,10 +22,6 @@ type ReadNoteCore struct {
 	contextPage    playwright.Page
 	xhsClient      *XhsApiClient
 }
-
-const XHSLimitCount = 20
-
-var XHSPageCount = 1
 
 func (core *ReadNoteCore) InitConfig(loginType string) {
 	core.loginType = loginType
@@ -123,8 +123,8 @@ func (core *ReadNoteCore) CreateXhsClient() *XhsApiClient {
 	headers := map[string]interface{}{
 		"User-Agent":   core.userAgent,
 		"Cookie":       convertResp.cookieStr,
-		"Origin":       "https://www.xiaohongshu.com",
-		"Referer":      "https://www.xiaohongshu.com",
+		"Origin":       XhsBasUrl,
+		"Referer":      XhsBasUrl,
 		"Content-Type": "application/json;charset=UTF-8",
 	}
 	return &XhsApiClient{
@@ -134,7 +134,7 @@ func (core *ReadNoteCore) CreateXhsClient() *XhsApiClient {
 			timeout:        60,
 			cookiesMap:     convertResp.cookiesMap,
 			playwrightPage: core.contextPage,
-			baseUrl:        "https://edith.xiaohongshu.com",
+			baseUrl:        ApiBaseUrl,
 		},
 	}
 }

@@ -26,6 +26,11 @@ const (
 	IMAGE
 )
 
+var (
+	XhsBasUrl  = "https://www.xiaohongshu.com"
+	ApiBaseUrl = "https://edith.xiaohongshu.com"
+)
+
 // XhsHttpClient Packaged httpclient based on xhs
 type XhsHttpClient struct {
 	client         *http.Client

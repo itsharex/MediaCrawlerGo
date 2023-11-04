@@ -85,10 +85,33 @@ func (xl *XhsLogin) loginByCookies() {
 	util.Log().Info("[XhsLogin.loginByCookies] Begin login xiaohongshu by cookies ...")
 
 	// add login success cookie to playwright browser context
-	err := xl.browserContext.AddCookies(util.ConvertCookieStrToPlaywrightCookieList(*xl.loginSuccessCookieStr))
+	err := xl.browserContext.AddCookies(util.ConvertCookieStrToPlaywrightCookieList(*xl.loginSuccessCookieStr, &XhsBasUrl))
 	if err != nil {
 		util.Log().Error("[XhsLogin.loginByCookies] convert cookie str failed and err:%+v", err)
 		return
+	}
+
+	// get not logged session
+	cookies, err := xl.browserContext.Cookies()
+	util.AssertErrorToNil("[XhsLogin.loginByQrcode] could not get cookies from browserContext: %s", err)
+	convertResp, err := ConvertCookies(cookies)
+	util.AssertErrorToNil("[XhsLogin.loginByQrcode] convert cookie failed and error:", err)
+	noLoginWebSession := convertResp.cookiesMap["web_session"]
+
+	// check login state
+	loginFlag := make(chan bool)
+	go xl.checkLoginState(noLoginWebSession, loginFlag)
+	select {
+	case result := <-loginFlag:
+		if result {
+			util.Log().Info("[XhsLogin.loginByQrcode] Login successfully ...")
+		} else {
+			util.Log().Error("[XhsLogin.loginByQrcode] Login failed ...")
+			os.Exit(-1)
+		}
+	case <-time.After(MaxLoginTimeOut * time.Second):
+		util.Log().Error("[XhsLogin.loginByQrcode] Login time out ...")
+		os.Exit(-1)
 	}
 
 }
