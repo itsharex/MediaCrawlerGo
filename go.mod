@@ -1,4 +1,4 @@
-module MediaCrawlerGo
+module github.com/NanmiCoder/MediaCrawlerGo
 
 go 1.21.0
 

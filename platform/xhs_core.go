@@ -8,7 +8,7 @@ import (
 
 	"github.com/playwright-community/playwright-go"
 
-	"MediaCrawlerGo/util"
+	"github.com/NanmiCoder/MediaCrawlerGo/util"
 )
 
 type ReadNoteCore struct {

@@ -4,9 +4,9 @@ import (
 	"flag"
 	"os"
 
-	"MediaCrawlerGo/conf"
-	"MediaCrawlerGo/platform"
-	"MediaCrawlerGo/util"
+	"github.com/NanmiCoder/MediaCrawlerGo/conf"
+	"github.com/NanmiCoder/MediaCrawlerGo/platform"
+	"github.com/NanmiCoder/MediaCrawlerGo/util"
 )
 
 // crawler factory mode

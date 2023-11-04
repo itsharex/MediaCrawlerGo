@@ -1,10 +1,11 @@
 package platform
 
 import (
-	"MediaCrawlerGo/util"
-	"github.com/playwright-community/playwright-go"
 	"os"
 	"time"
+
+	"github.com/NanmiCoder/MediaCrawlerGo/util"
+	"github.com/playwright-community/playwright-go"
 )
 
 const MaxLoginTimeOut = 120

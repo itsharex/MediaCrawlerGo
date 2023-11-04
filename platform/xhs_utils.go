@@ -10,7 +10,7 @@ import (
 
 	"github.com/playwright-community/playwright-go"
 
-	"MediaCrawlerGo/util"
+	"github.com/NanmiCoder/MediaCrawlerGo/util"
 )
 
 func IntToBase36(num *big.Int) string {

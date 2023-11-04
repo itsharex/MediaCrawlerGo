@@ -1,7 +1,7 @@
 package platform
 
 import (
-	"MediaCrawlerGo/util"
+	"github.com/NanmiCoder/MediaCrawlerGo/util"
 )
 
 type DYCore struct {

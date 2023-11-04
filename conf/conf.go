@@ -1,12 +1,13 @@
 package conf
 
 import (
-	"MediaCrawlerGo/models"
 	"log"
 	"os"
 
-	"MediaCrawlerGo/util"
 	"github.com/joho/godotenv"
+
+	"github.com/NanmiCoder/MediaCrawlerGo/models"
+	"github.com/NanmiCoder/MediaCrawlerGo/util"
 )
 
 func Init() {

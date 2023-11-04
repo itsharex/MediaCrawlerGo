@@ -1,7 +1,6 @@
 package models
 
 import (
-	"MediaCrawlerGo/util"
 	"log"
 	"os"
 	"time"
@@ -9,6 +8,8 @@ import (
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
+
+	"github.com/NanmiCoder/MediaCrawlerGo/util"
 )
 
 // DB 数据库链接单例
