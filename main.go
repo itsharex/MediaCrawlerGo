@@ -17,7 +17,7 @@ func createCrawler(currentPlatform string) platform.AbstractCrawler {
 	} else if currentPlatform == "dy" {
 		crawler = &platform.DYCore{}
 	} else {
-		util.Log().Panic("Invalid Media Platform Currently only supported xhs or dy ...")
+		util.Log().Panic("[createCrawler] Invalid Media Platform Currently only supported xhs or dy ...")
 	}
 	return crawler
 }
@@ -35,5 +35,5 @@ func main() {
 	crawler := createCrawler(*currentPlatform)
 	crawler.InitConfig(*loginType)
 	crawler.Start()
-	util.Log().Info("Running ...")
+	util.Log().Info("[main] Running ...")
 }

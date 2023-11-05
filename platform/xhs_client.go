@@ -14,6 +14,23 @@ import (
 	"github.com/NanmiCoder/MediaCrawlerGo/util"
 )
 
+const (
+	GENERAL SearchSortType = "general"
+	POPULAR SearchSortType = "popularity_descending"
+	LATEST  SearchSortType = "time_descending"
+)
+
+const (
+	ALL SearchNoteType = iota
+	VIDEO
+	IMAGE
+)
+
+var (
+	XhsBasUrl  = "https://www.xiaohongshu.com"
+	ApiBaseUrl = "https://edith.xiaohongshu.com"
+)
+
 // XhsHttpClient Packaged httpclient based on xhs
 type XhsHttpClient struct {
 	client         *http.Client
@@ -43,18 +60,6 @@ type Note struct {
 	// Define your Note struct fields here
 }
 
-const (
-	GENERAL SearchSortType = "general"
-	POPULAR SearchSortType = "popularity_descending"
-	LATEST  SearchSortType = "time_descending"
-)
-
-const (
-	ALL SearchNoteType = iota
-	VIDEO
-	IMAGE
-)
-
 func (c *XhsHttpClient) PreHeaders(uri string, body []byte) map[string]interface{} {
 	var fullHeaders map[string]interface{}
 	var encryptData map[string]interface{}
@@ -73,9 +78,6 @@ func (c *XhsHttpClient) PreHeaders(uri string, body []byte) map[string]interface
 	} else {
 		util.Log().Panic("encryptParams convert failed")
 	}
-
-	util.Log().Info("fullHeaders string :%s", fullHeaders)
-
 	return fullHeaders
 }
 
@@ -111,7 +113,7 @@ func (c *XhsHttpClient) Get(uri string, params map[string]string) (*http.Respons
 }
 
 func (c *XhsHttpClient) Post(uri string, body []byte) (*http.Response, error) {
-	util.Log().Info("Begin execute post request, uri: %s, body: %v", uri, string(body))
+	util.Log().Info("[XhsHttpClient.Post] Begin execute post request, uri: %s, body: %v", uri, string(body))
 	req, err := http.NewRequest("POST", c.baseUrl+uri, bytes.NewBuffer(body))
 	if err != nil {
 		return nil, err
@@ -144,7 +146,7 @@ type XhsApiClient struct {
 // Ping xhs api pong before execute search note ...
 func (api *XhsApiClient) Ping() bool {
 	pong := true
-	util.Log().Info("Begin to ping xhs ...")
+	util.Log().Info("[XhsApiClient.Ping] Begin to ping xhs ...")
 	_, err := api.GetNoteByKeyword(SearchXhsNoteParams{
 		Keyword:  "小红书",
 		Page:     1,
@@ -155,7 +157,7 @@ func (api *XhsApiClient) Ping() bool {
 	})
 	if err != nil {
 		pong = false
-		util.Log().Info("Xhs ping failed and login again ...")
+		util.Log().Info("[XhsApiClient.Ping] Xhs ping failed and login again ...")
 	}
 	return pong
 }
@@ -163,9 +165,9 @@ func (api *XhsApiClient) Ping() bool {
 // UpdateCookies will call this method when invalid login
 func (api *XhsApiClient) UpdateCookies(ctx playwright.BrowserContext) {
 	cookies, err := ctx.Cookies()
-	util.AssertErrorToNil("could not get cookies from browserContext: %s", err)
+	util.AssertErrorToNil("[XhsApiClient.UpdateCookies] could not get cookies from browserContext: %s", err)
 	convertResp, err := ConvertCookies(cookies)
-	util.AssertErrorToNil("convert cookie failed and error:", err)
+	util.AssertErrorToNil("[XhsApiClient.UpdateCookies] convert cookie failed and error:", err)
 	api.httpClient.headers["Cookie"] = convertResp.cookieStr
 	api.httpClient.cookiesMap = convertResp.cookiesMap
 }
@@ -182,8 +184,8 @@ func (api *XhsApiClient) GetNoteByKeyword(searchParams SearchXhsNoteParams) (Not
 	if resp.StatusCode != 200 {
 		var errorResp any
 		_ = json.NewDecoder(resp.Body).Decode(&errorResp)
-		util.Log().Info("errorResp: %v", errorResp)
-		return NoteSearchResult{}, errors.New("got note failed")
+		util.Log().Info("[XhsHttpClient.GetNoteByKeyword] errorResp: %v", errorResp)
+		return NoteSearchResult{}, errors.New("[XhsHttpClient.GetNoteByKeyword] got note failed")
 	}
 
 	var result NoteSearchResult
