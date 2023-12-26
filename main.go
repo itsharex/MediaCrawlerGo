@@ -2,20 +2,21 @@ package main
 
 import (
 	"flag"
-	"os"
-
 	"github.com/NanmiCoder/MediaCrawlerGo/conf"
 	"github.com/NanmiCoder/MediaCrawlerGo/platform"
+	dy "github.com/NanmiCoder/MediaCrawlerGo/platform/douyin"
+	xhs "github.com/NanmiCoder/MediaCrawlerGo/platform/xhs"
 	"github.com/NanmiCoder/MediaCrawlerGo/util"
+	"os"
 )
 
 // crawler factory mode
 func createCrawler(currentPlatform string) platform.AbstractCrawler {
 	var crawler platform.AbstractCrawler
 	if currentPlatform == "xhs" {
-		crawler = &platform.ReadNoteCore{}
+		crawler = &xhs.ReadNoteCore{}
 	} else if currentPlatform == "dy" {
-		crawler = &platform.DYCore{}
+		crawler = &dy.DYCore{}
 	} else {
 		util.Log().Panic("[createCrawler] Invalid Media Platform Currently only supported xhs or dy ...")
 	}

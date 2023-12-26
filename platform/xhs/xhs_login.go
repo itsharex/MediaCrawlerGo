@@ -17,19 +17,19 @@ type XhsLogin struct {
 	loginSuccessCookieStr *string
 }
 
-func (xl *XhsLogin) begin() {
+func (xl *XhsLogin) Begin() {
 	util.Log().Info("[XhsLogin.begin] Begin login xiaohongshu ...")
 	if xl.loginType == "qrcode" {
-		xl.loginByQrcode()
+		xl.LoginByQrcode()
 	} else if xl.loginType == "cookie" {
-		xl.loginByCookies()
+		xl.LoginByCookies()
 	} else {
 		util.Log().Panic("[XhsLogin.begin] Invalid Login Type Currently only supported qrcode or phone or cookies ...")
 	}
 }
 
-// loginByQrcode login by scan qrcode image
-func (xl *XhsLogin) loginByQrcode() {
+// LoginByQrcode login by scan qrcode image
+func (xl *XhsLogin) LoginByQrcode() {
 	util.Log().Info("[XhsLogin.loginByQrcode] Begin login xiaohongshu by qrcode ...")
 	// find login qrcode
 	qrcodeImageSelector := "xpath=//img[@class='qrcode-img']"
@@ -65,7 +65,7 @@ func (xl *XhsLogin) loginByQrcode() {
 	}
 
 	loginFlag := make(chan bool)
-	go xl.checkLoginState(noLoginWebSession, loginFlag)
+	go xl.CheckLoginState(noLoginWebSession, loginFlag)
 	select {
 	case result := <-loginFlag:
 		if result {
@@ -80,8 +80,8 @@ func (xl *XhsLogin) loginByQrcode() {
 	}
 }
 
-// loginByCookies login use cookies
-func (xl *XhsLogin) loginByCookies() {
+// LoginByCookies login use cookies
+func (xl *XhsLogin) LoginByCookies() {
 	util.Log().Info("[XhsLogin.loginByCookies] Begin login xiaohongshu by cookies ...")
 
 	// add login success cookie to playwright browser context
@@ -100,7 +100,7 @@ func (xl *XhsLogin) loginByCookies() {
 
 	// check login state
 	loginFlag := make(chan bool)
-	go xl.checkLoginState(noLoginWebSession, loginFlag)
+	go xl.CheckLoginState(noLoginWebSession, loginFlag)
 	select {
 	case result := <-loginFlag:
 		if result {
@@ -116,8 +116,8 @@ func (xl *XhsLogin) loginByCookies() {
 
 }
 
-// checkLoginState polling check login state
-func (xl *XhsLogin) checkLoginState(noLoginWebSession string, loginFlag chan<- bool) {
+// CheckLoginState polling check login state
+func (xl *XhsLogin) CheckLoginState(noLoginWebSession string, loginFlag chan<- bool) {
 	for i := 0; i < MaxLoginTimeOut; i++ {
 		util.Log().Info("[XhsLogin.checkLoginState] Remaining %d s login", MaxLoginTimeOut-i)
 		if isLoggedIn(noLoginWebSession, xl.browserContext) {

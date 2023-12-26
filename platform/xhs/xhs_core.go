@@ -77,17 +77,17 @@ func (core *ReadNoteCore) Start() {
 			contextPage:           core.contextPage,
 			loginSuccessCookieStr: &loginSuccess,
 		}
-		login.begin()
+		login.Begin()
 		core.xhsClient.UpdateCookies(core.browserContext)
 	}
 
-	core.search()
+	core.Search()
 
 	// block
 	select {}
 }
 
-func (core *ReadNoteCore) search() {
+func (core *ReadNoteCore) Search() {
 	util.Log().Info("[ReadNoteCore.search] called ...")
 	keywords := os.Getenv("KEYWORDS")
 	crawlerMaxNotesCount, _ := strconv.Atoi(os.Getenv("CRAWLER_MAX_NOTES_COUNT"))

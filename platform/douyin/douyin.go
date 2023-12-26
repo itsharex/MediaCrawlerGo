@@ -14,10 +14,10 @@ func (dy *DYCore) InitConfig(loginType string) {
 }
 
 func (dy *DYCore) Start() {
-	dy.search()
+	dy.Search()
 	util.Log().Info("DYCore.Start called ..")
 }
 
-func (dy *DYCore) search() {
+func (dy *DYCore) Search() {
 	util.Log().Info("DYCore.search called ..")
 }

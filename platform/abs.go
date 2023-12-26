@@ -12,23 +12,23 @@ type AbstractCrawler interface {
 	Start()
 
 	// Search method will use some keywords to find for content on corresponding platforms.
-	search()
+	Search()
 }
 
 // AbstractLogin extract some login methods into an interface, and specific subclasses can implement the methods.
 type AbstractLogin interface {
 
-	// begin method is the main process implemented on the logging in
-	begin()
+	// Begin method is the main process implemented on the logging in
+	Begin()
 
-	// loginByQrcode use qrcode logging in the specific platform
-	loginByQrcode()
+	// LoginByQrcode use qrcode logging in the specific platform
+	LoginByQrcode()
 
-	// loginByQrcode use cookies logging in the specific platform
-	loginByCookies()
+	// LoginByCookies use cookies logging in the specific platform
+	LoginByCookies()
 
-	// checkLoginState Asynchronous polling check login status.
-	checkLoginState()
+	// CheckLoginState Asynchronous polling check login status.
+	CheckLoginState()
 }
 
 // AbstractClient all platform client abstract client
